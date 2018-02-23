@@ -5,12 +5,15 @@ import numpy as np
 import pandas as pd
 import json
 from threading import Thread
+from sklearn.model_selection import train_test_split
 
 
 class DriverActionDataset(object):
     def __init__(self,dataset_dir,image_shape,max_sequence_length=1519):
         self.dataset_dir = dataset_dir
         self.image_shape = image_shape
+        self.dataset_loaded = False
+        self.max_sequence_length = max_sequence_length
     def get_attribute(self,folder_name):
         subj,gender_glasses,action_str = folder_name.split("-")
         gender = -1
@@ -62,25 +65,26 @@ class DriverActionDataset(object):
 
         right_eye = image[right_eye_top:right_eye_bottom,right_eye_left:right_eye_right]
 
-        r_left_corner_top   = int(max(dlib_points[19][1],0))
-        r_left_corner_left  = int(max(dlib_points[19][0],0))
-        r_left_corner_right = int(min(dlib_points[27][0],image.shape[1]))
-        r_left_corner_bottom = int(min(dlib_points[41][1],image.shape[0]))
+        # r_left_corner_top   = int(max(dlib_points[19][1],0))
+        # r_left_corner_left  = int(max(dlib_points[19][0],0))
+        # r_left_corner_right = int(min(dlib_points[27][0],image.shape[1]))
+        # r_left_corner_bottom = int(min(dlib_points[41][1],image.shape[0]))
 
-        right_eye_left_corner = image[r_left_corner_top:r_left_corner_bottom,r_left_corner_left:r_left_corner_right]
+        # right_eye_left_corner = image[r_left_corner_top:r_left_corner_bottom,r_left_corner_left:r_left_corner_right]
 
-        r_right_corner_top   = int(max(dlib_points[19][1],0))
-        r_right_corner_left  = int(max(dlib_points[17][0]-5,0))
-        r_right_corner_right = int(min(dlib_points[19][0],image.shape[1]))
-        r_right_corner_bottom = int(min(dlib_points[41][1]+5,image.shape[0]))
+        # r_right_corner_top   = int(max(dlib_points[19][1],0))
+        # r_right_corner_left  = int(max(dlib_points[17][0]-5,0))
+        # r_right_corner_right = int(min(dlib_points[19][0],image.shape[1]))
+        # r_right_corner_bottom = int(min(dlib_points[41][1]+5,image.shape[0]))
 
-        right_eye_right_corner = image[r_right_corner_top:r_right_corner_bottom, r_right_corner_left:r_right_corner_right]
+        # right_eye_right_corner = image[r_right_corner_top:r_right_corner_bottom, r_right_corner_left:r_right_corner_right]
         
         right_eye = self.resize_to_output_shape(right_eye)
-        right_eye_left_corner = self.resize_to_output_shape(right_eye_left_corner)
-        right_eye_right_corner = self.resize_to_output_shape(right_eye_right_corner)
+        # right_eye_left_corner = self.resize_to_output_shape(right_eye_left_corner)
+        # right_eye_right_corner = self.resize_to_output_shape(right_eye_right_corner)
 
-        return right_eye,right_eye_left_corner,right_eye_right_corner
+        # return right_eye,right_eye_left_corner,right_eye_right_corner
+        return right_eye
 
     def get_left_eye_attributes(self,image,dlib_points):
         left_eye_top = int(max(dlib_points[24][1]-5,0))
@@ -90,25 +94,26 @@ class DriverActionDataset(object):
 
         left_eye = image[left_eye_top:left_eye_bottom,left_eye_left:left_eye_right]
 
-        l_left_corner_top   = int(max(dlib_points[24][1],0))
-        l_left_corner_left  = int(max(dlib_points[24][0],0))
-        l_left_corner_right = int(min(dlib_points[26][0],image.shape[1]))
-        l_left_corner_bottom = int(min(dlib_points[46][1],image.shape[0]))
+        # l_left_corner_top   = int(max(dlib_points[24][1],0))
+        # l_left_corner_left  = int(max(dlib_points[24][0],0))
+        # l_left_corner_right = int(min(dlib_points[26][0],image.shape[1]))
+        # l_left_corner_bottom = int(min(dlib_points[46][1],image.shape[0]))
 
-        left_eye_left_corner = image[l_left_corner_top:l_left_corner_bottom,l_left_corner_left:l_left_corner_right]
+        # left_eye_left_corner = image[l_left_corner_top:l_left_corner_bottom,l_left_corner_left:l_left_corner_right]
 
-        l_right_corner_top   = int(max(dlib_points[24][1],0))
-        l_right_corner_left  = int(max(dlib_points[27][0],0))
-        l_right_corner_right = int(min(dlib_points[24][0],image.shape[1]))
-        l_right_corner_bottom = int(min(dlib_points[46][1],image.shape[0]))
+        # l_right_corner_top   = int(max(dlib_points[24][1],0))
+        # l_right_corner_left  = int(max(dlib_points[27][0],0))
+        # l_right_corner_right = int(min(dlib_points[24][0],image.shape[1]))
+        # l_right_corner_bottom = int(min(dlib_points[46][1],image.shape[0]))
         
-        left_eye_right_corner = image[l_right_corner_top:l_right_corner_bottom, l_right_corner_left:l_right_corner_right]
+        # left_eye_right_corner = image[l_right_corner_top:l_right_corner_bottom, l_right_corner_left:l_right_corner_right]
         
         left_eye = self.resize_to_output_shape(left_eye)
-        left_eye_left_corner = self.resize_to_output_shape(left_eye_left_corner)
-        left_eye_right_corner = self.resize_to_output_shape(left_eye_right_corner)
+        # left_eye_left_corner = self.resize_to_output_shape(left_eye_left_corner)
+        # left_eye_right_corner = self.resize_to_output_shape(left_eye_right_corner)
         
-        return left_eye,left_eye_left_corner,left_eye_right_corner 
+        # return left_eye,left_eye_left_corner,left_eye_right_corner 
+        return left_eye
     def resize_to_output_shape(self,image):
         img = cv2.resize(image,(self.image_shape[0],self.image_shape[1]))
         return img
@@ -120,29 +125,30 @@ class DriverActionDataset(object):
 
         nose = image[nose_top:nose_bottom,nose_left:nose_right]
 
-        nose_left_corner_top   = int(max(dlib_points[27][1],0))
-        nose_left_corner_left  = int(max(dlib_points[27][0],0))
-        nose_left_corner_right = int(min(dlib_points[42][0],image.shape[1]))
-        nose_left_corner_bottom = int(min(dlib_points[33][1],image.shape[0]))
+        # nose_left_corner_top   = int(max(dlib_points[27][1],0))
+        # nose_left_corner_left  = int(max(dlib_points[27][0],0))
+        # nose_left_corner_right = int(min(dlib_points[42][0],image.shape[1]))
+        # nose_left_corner_bottom = int(min(dlib_points[33][1],image.shape[0]))
 
-        nose_left_corner = image[nose_left_corner_top:nose_left_corner_bottom,nose_left_corner_left:nose_left_corner_right]
+        # nose_left_corner = image[nose_left_corner_top:nose_left_corner_bottom,nose_left_corner_left:nose_left_corner_right]
 
-        nose_right_corner_top   = int(max(dlib_points[27][1],0))
-        nose_right_corner_left  = int(max(dlib_points[39][0],0))
-        nose_right_corner_right = int(min(dlib_points[27][0],image.shape[1]))
-        nose_right_corner_bottom = int(min(dlib_points[33][1],image.shape[0]))
+        # nose_right_corner_top   = int(max(dlib_points[27][1],0))
+        # nose_right_corner_left  = int(max(dlib_points[39][0],0))
+        # nose_right_corner_right = int(min(dlib_points[27][0],image.shape[1]))
+        # nose_right_corner_bottom = int(min(dlib_points[33][1],image.shape[0]))
         
-        nose_right_corner = image[nose_right_corner_top:nose_right_corner_bottom, nose_right_corner_left:nose_right_corner_right]
+        # nose_right_corner = image[nose_right_corner_top:nose_right_corner_bottom, nose_right_corner_left:nose_right_corner_right]
         
      
 
         nose = self.resize_to_output_shape(nose)
-        nose_left_corner = self.resize_to_output_shape(nose_left_corner)
+        # nose_left_corner = self.resize_to_output_shape(nose_left_corner)
 
-        nose_right_corner = self.resize_to_output_shape(nose_right_corner)
+        # nose_right_corner = self.resize_to_output_shape(nose_right_corner)
 
 
-        return nose,nose_left_corner,nose_right_corner
+        # return nose,nose_left_corner,nose_right_corner
+        return nose
     def get_mouth_attributes(self,image,dlib_points):
         mouth_top = int(max(dlib_points[50][1]-5,0))
         mouth_left = int(max(dlib_points[48][0]-5,0))
@@ -151,51 +157,45 @@ class DriverActionDataset(object):
 
         mouth = image[mouth_top:mouth_bottom,mouth_left:mouth_right]
 
-        mouth_left_corner_top   = int(max(dlib_points[52][1],0))
-        mouth_left_corner_left  = int(max(dlib_points[51][0],0))
-        mouth_left_corner_right = int(min(dlib_points[54][0]+5,image.shape[1]))
-        mouth_left_corner_bottom = int(min(dlib_points[57][1],image.shape[0]))
+        # mouth_left_corner_top   = int(max(dlib_points[52][1],0))
+        # mouth_left_corner_left  = int(max(dlib_points[51][0],0))
+        # mouth_left_corner_right = int(min(dlib_points[54][0]+5,image.shape[1]))
+        # mouth_left_corner_bottom = int(min(dlib_points[57][1],image.shape[0]))
 
-        mouth_left_corner = image[mouth_left_corner_top:mouth_left_corner_bottom,mouth_left_corner_left:mouth_left_corner_right]
+        # mouth_left_corner = image[mouth_left_corner_top:mouth_left_corner_bottom,mouth_left_corner_left:mouth_left_corner_right]
 
-        mouth_right_corner_top   = int(max(dlib_points[52][1],0))
-        mouth_right_corner_left  = int(max(dlib_points[48][0],0))
-        mouth_right_corner_right = int(min(dlib_points[57][0],image.shape[1]))
-        mouth_right_corner_bottom = int(min(dlib_points[57][1],image.shape[0]))
+        # mouth_right_corner_top   = int(max(dlib_points[52][1],0))
+        # mouth_right_corner_left  = int(max(dlib_points[48][0],0))
+        # mouth_right_corner_right = int(min(dlib_points[57][0],image.shape[1]))
+        # mouth_right_corner_bottom = int(min(dlib_points[57][1],image.shape[0]))
         
-        mouth_right_corner = image[mouth_right_corner_top:mouth_right_corner_bottom, mouth_right_corner_left:mouth_right_corner_right]
+        # mouth_right_corner = image[mouth_right_corner_top:mouth_right_corner_bottom, mouth_right_corner_left:mouth_right_corner_right]
         
-        mouth_top_corner_top   = int(max(dlib_points[50][1],0))
-        mouth_top_corner_left  = int(max(dlib_points[48][0],0))
-        mouth_top_corner_right = int(min(dlib_points[54][0],image.shape[1]))
-        mouth_top_corner_bottom = int(min(dlib_points[48][1],image.shape[0]))
+        # mouth_top_corner_top   = int(max(dlib_points[50][1],0))
+        # mouth_top_corner_left  = int(max(dlib_points[48][0],0))
+        # mouth_top_corner_right = int(min(dlib_points[54][0],image.shape[1]))
+        # mouth_top_corner_bottom = int(min(dlib_points[48][1],image.shape[0]))
         
-        mouth_top_corner = image[mouth_top_corner_top:mouth_top_corner_bottom, mouth_top_corner_left:mouth_top_corner_right]
+        # mouth_top_corner = image[mouth_top_corner_top:mouth_top_corner_bottom, mouth_top_corner_left:mouth_top_corner_right]
         
-        mouth_bottom_corner_top   = int(max(dlib_points[48][1],0))
-        mouth_bottom_corner_left  = int(max(dlib_points[48][0],0))
-        mouth_bottom_corner_right = int(min(dlib_points[54][0],image.shape[1]))
-        mouth_bottom_corner_bottom = int(min(dlib_points[57][1],image.shape[0]))
+        # mouth_bottom_corner_top   = int(max(dlib_points[48][1],0))
+        # mouth_bottom_corner_left  = int(max(dlib_points[48][0],0))
+        # mouth_bottom_corner_right = int(min(dlib_points[54][0],image.shape[1]))
+        # mouth_bottom_corner_bottom = int(min(dlib_points[57][1],image.shape[0]))
         
-        mouth_bottom_corner = image[mouth_bottom_corner_top:mouth_bottom_corner_bottom, mouth_bottom_corner_left:mouth_bottom_corner_right]
+        # mouth_bottom_corner = image[mouth_bottom_corner_top:mouth_bottom_corner_bottom, mouth_bottom_corner_left:mouth_bottom_corner_right]
         
-        cv2.imshow("Mouth",mouth)
-        cv2.imshow("Mouth left corner",mouth_left_corner)
-        cv2.imshow("Mouth right corner",mouth_right_corner)
-        cv2.imshow("Mouth top corner",mouth_top_corner)
-        cv2.imshow("Mouth bottom corner",mouth_bottom_corner)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
 
         mouth = self.resize_to_output_shape(mouth)
-        mouth_left_corner = self.resize_to_output_shape(mouth_left_corner)
-        mouth_right_corner = self.resize_to_output_shape(mouth_right_corner)
-        mouth_top_corner = self.resize_to_output_shape(mouth_top_corner)
-        mouth_bottom_corner = self.resize_to_output_shape(mouth_bottom_corner)
+        # mouth_left_corner = self.resize_to_output_shape(mouth_left_corner)
+        # mouth_right_corner = self.resize_to_output_shape(mouth_right_corner)
+        # mouth_top_corner = self.resize_to_output_shape(mouth_top_corner)
+        # mouth_bottom_corner = self.resize_to_output_shape(mouth_bottom_corner)
 
         
 
-        return mouth,mouth_left_corner,mouth_right_corner,mouth_top_corner,mouth_bottom_corner
+        # return mouth,mouth_left_corner,mouth_right_corner,mouth_top_corner,mouth_bottom_corner
+        return mouth
    
     def get_face_attributes(self,image,face,predictor):
         face_image =image[ int(max(0,face.top())):int(min(image.shape[0],face.bottom())),
@@ -204,38 +204,43 @@ class DriverActionDataset(object):
         face_image = cv2.resize(face_image,(self.image_shape[0],self.image_shape[1]))
 
         dlib_points = self.get_dlib_points(image,face,predictor)
-        cv2.circle(image,(int(dlib_points[46][0]),int(dlib_points[46][1])),1,(255,0,0))
-        cv2.circle(image,(int(dlib_points[41][0]),int(dlib_points[41][1])),1,(0,255,0))
-        right_eye,right_eye_left_corner,right_eye_right_corner  = self.get_right_eye_attributes(image,dlib_points)
-        left_eye,left_eye_left_corner,left_eye_right_corner  = self.get_left_eye_attributes(image,dlib_points)
-        nose,nose_right_corner,nose_left_corner = self.get_nose_attributes(image,dlib_points)
-        mouth,mouth_left_corner,mouth_right_corner,mouth_top_corner,mouth_bottom_corner = self.get_mouth_attributes(image,dlib_points)
+        right_eye = self.get_right_eye_attributes(image,dlib_points)
+        left_eye = self.get_left_eye_attributes(image,dlib_points)
+        nose = self.get_nose_attributes(image,dlib_points)
+        mouth = self.get_mouth_attributes(image,dlib_points)
         output = {"face_image":face_image,"right_eye":right_eye,"left_eye":left_eye,
-                    "mouth":mouth,"nose":nose,"left_eye_right_corner":left_eye_right_corner,
-                    "left_eye_left_corner":left_eye_left_corner,"right_eye_right_corner":right_eye_right_corner,
-                    "right_eye_left_corner":right_eye_left_corner,"nose_right_corner":nose_right_corner,
-                    "nose_left_corner":nose_left_corner,"mouth_left_corner":mouth_left_corner,
-                    "mouth_right_corner":mouth_right_corner,"mouth_top_corner":mouth_top_corner,
-                    "mouth_bottom_corner":mouth_bottom_corner
+                    "mouth":mouth,"nose":nose
                     }
+        # right_eye,right_eye_left_corner,right_eye_right_corner  = self.get_right_eye_attributes(image,dlib_points)
+        # left_eye,left_eye_left_corner,left_eye_right_corner  = self.get_left_eye_attributes(image,dlib_points)
+        # nose,nose_right_corner,nose_left_corner = self.get_nose_attributes(image,dlib_points)
+        # mouth,mouth_left_corner,mouth_right_corner,mouth_top_corner,mouth_bottom_corner = self.get_mouth_attributes(image,dlib_points)
+        # output = {"face_image":face_image,"right_eye":right_eye,"left_eye":left_eye,
+        #             "mouth":mouth,"nose":nose,"left_eye_right_corner":left_eye_right_corner,
+        #             "left_eye_left_corner":left_eye_left_corner,"right_eye_right_corner":right_eye_right_corner,
+        #             "right_eye_left_corner":right_eye_left_corner,"nose_right_corner":nose_right_corner,
+        #             "nose_left_corner":nose_left_corner,"mouth_left_corner":mouth_left_corner,
+        #             "mouth_right_corner":mouth_right_corner,"mouth_top_corner":mouth_top_corner,
+        #             "mouth_bottom_corner":mouth_bottom_corner
+        #             }
         return output
     def load_image_sequence(self,path,detector,predictor):
         imgs_files = os.listdir(path)
-        output_faces = np.zeros((len(imgs_files),self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        output_right_eyes = np.zeros((len(imgs_files),self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        output_left_eyes = np.zeros((len(imgs_files),self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        output_mouths = np.zeros((len(imgs_files),self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        output_noses = np.zeros((len(imgs_files),self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        output_left_eye_right_corners = np.zeros((len(imgs_files),self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        output_left_eye_left_corners = np.zeros((len(imgs_files),self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        output_right_eye_right_corners = np.zeros((len(imgs_files),self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        output_right_eye_left_corners = np.zeros((len(imgs_files),self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        output_nose_right_corners = np.zeros((len(imgs_files),self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        output_nose_left_corners = np.zeros((len(imgs_files),self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        output_mouth_left_corners = np.zeros((len(imgs_files),self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        output_mouth_right_corners = np.zeros((len(imgs_files),self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        output_mouth_top_corners = np.zeros((len(imgs_files),self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        output_mouth_bottom_corners = np.zeros((len(imgs_files),self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        output_faces = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        output_right_eyes = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        output_left_eyes = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        output_mouths = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        output_noses = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        # output_left_eye_right_corners = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        # output_left_eye_left_corners = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        # output_right_eye_right_corners = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        # output_right_eye_left_corners = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        # output_nose_right_corners = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        # output_nose_left_corners = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        # output_mouth_left_corners = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        # output_mouth_right_corners = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        # output_mouth_top_corners = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        # output_mouth_bottom_corners = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
         
     
 
@@ -257,26 +262,64 @@ class DriverActionDataset(object):
                     output_left_eyes[i] = attrs["left_eye"]
                     output_noses[i] = attrs["nose"]
                     output_mouths[i] = attrs["mouth"]
-                    output_left_eye_right_corners[i] = attrs["left_eye_right_corner"]
-                    output_left_eye_left_corners[i] = attrs["left_eye_left_corner"]
-                    output_right_eye_right_corners[i] = attrs["right_eye_right_corner"]
-                    output_right_eye_left_corners[i] = attrs["right_eye_left_corner"]
-                    output_nose_right_corners[i] = attrs["nose_right_corner"]
-                    output_nose_left_corners[i] = attrs["nose_left_corner"]
-                    output_mouth_right_corners[i] = attrs["mouth_right_corner"]
-                    output_mouth_left_corners[i] = attrs["mouth_left_corner"]
-                    output_mouth_top_corners[i] = attrs["mouth_top_corner"]
-                    output_mouth_bottom_corners[i] = attrs["mouth_bottom_corner"]
+                    # output_left_eye_right_corners[i] = attrs["left_eye_right_corner"]
+                    # output_left_eye_left_corners[i] = attrs["left_eye_left_corner"]
+                    # output_right_eye_right_corners[i] = attrs["right_eye_right_corner"]
+                    # output_right_eye_left_corners[i] = attrs["right_eye_left_corner"]
+                    # output_nose_right_corners[i] = attrs["nose_right_corner"]
+                    # output_nose_left_corners[i] = attrs["nose_left_corner"]
+                    # output_mouth_right_corners[i] = attrs["mouth_right_corner"]
+                    # output_mouth_left_corners[i] = attrs["mouth_left_corner"]
+                    # output_mouth_top_corners[i] = attrs["mouth_top_corner"]
+                    # output_mouth_bottom_corners[i] = attrs["mouth_bottom_corner"]
                     
 
                 else:
                     print("No faces found for ",os.path.join(path,imgs_files[i]))
             else:
                 print ("Unable to read image from ",os.path.join(path,imgs_files[i]))
-        return output_faces,output_left_eyes,output_right_eyes,output_noses,output_mouths,\
-            output_left_eye_right_corners,output_left_eye_right_corners,output_right_eye_left_corners,\
-            output_right_eye_right_corners,output_nose_left_corners,output_nose_right_corners,\
-            output_mouth_left_corners,output_mouth_right_corners,output_mouth_top_corners,output_mouth_bottom_corners
-                
+        return output_faces,output_left_eyes,output_right_eyes,output_noses,output_mouths
+        # return output_faces,output_left_eyes,output_right_eyes,output_noses,output_mouths,\
+        #     output_left_eye_right_corners,output_left_eye_right_corners,output_right_eye_left_corners,\
+        #     output_right_eye_right_corners,output_nose_left_corners,output_nose_right_corners,\
+        #     output_mouth_left_corners,output_mouth_right_corners,output_mouth_top_corners,output_mouth_bottom_corners
+    def get_is_talking(self,folder_name):
+        if folder_name.lower().count("talking"):
+            return 1
+        else:
+            return 0
     def load_dataset(self):
-        pass
+        sequences = os.listdir(self.dataset_dir)
+
+        train_sequences,test_sequences = train_test_split(sequences,test_size=0.1)
+
+        num_train_sequences  = len(train_sequences)
+        num_test_sequences  = len(test_sequences)
+        
+        self.face_image_train_sequences = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        self.left_eye_image_train_sequences = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        self.right_eye_image_train_sequences = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        self.nose_image_train_sequences = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        self.mouth_image_train_sequences = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        self.talking_train = np.zeros((num_train_sequences,))
+
+
+        for i in range(train_sequences):
+            self.face_image_train_sequences[i],self.left_eye_image_train_sequences[i],self.right_eye_image_train_sequences[i],self.nose_image_train_sequences[i],self.mouth_image_train_sequences[i] = self.load_image_sequence(os.path.join(self.dataset_dir,train_sequences[i]))
+            self.talking_train[i] = self.get_is_talking(train_sequences[i])
+
+
+        self.face_image_test_sequences = np.zeros((num_test_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        self.left_eye_image_test_sequences = np.zeros((num_test_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        self.right_eye_image_test_sequences = np.zeros((num_test_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        self.nose_image_test_sequences = np.zeros((num_test_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        self.mouth_image_test_sequences = np.zeros((num_test_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        self.talking_test = np.zeros((num_test_sequences,))
+
+
+        for i in range(test_sequences):
+            self.face_image_test_sequences[i],self.left_eye_image_test_sequences[i],self.right_eye_image_test_sequences[i],self.nose_image_test_sequences[i],self.mouth_image_test_sequences[i] = self.load_image_sequence(os.path.join(self.dataset_dir,test_sequences[i]))
+            self.talking_test[i] = self.get_is_talking(test_sequences[i])
+        self.dataset_loaded = True
+
+        
