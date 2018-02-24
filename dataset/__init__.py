@@ -9,13 +9,13 @@ from sklearn.model_selection import train_test_split
 
 
 class DriverActionDataset(object):
-    def __init__(self,dataset_dir,image_shape,max_sequence_length=1519):
+    def __init__(self,dataset_dir,image_shape,max_sequence_length=100):
         self.dataset_dir = dataset_dir
         self.image_shape = image_shape
         self.dataset_loaded = False
         self.max_sequence_length = max_sequence_length
     def get_attribute(self,folder_name):
-        subj,gender_glasses,action_str = folder_name.split("-")
+        subj,gender_glasses,action_str,_ = folder_name.split("-")
         gender = -1
         glasses_str = None
         if gender_glasses[:4].lower() == "male":
@@ -224,8 +224,12 @@ class DriverActionDataset(object):
         #             "mouth_bottom_corner":mouth_bottom_corner
         #             }
         return output
+    
+    
     def load_image_sequence(self,path,detector,predictor):
+        print "loading",path
         imgs_files = os.listdir(path)
+        imgs_files.sort()
         output_faces = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
         output_right_eyes = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
         output_left_eyes = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
@@ -255,7 +259,7 @@ class DriverActionDataset(object):
                     #                  max(0,face.left()):min(img.shape[1],face.right())   
                     #                 ]
                     # [right_eye,left_eye,mouth,nose,left_eye_corners,right_eye_corners,nose_corners,mouth_corners]
-                    cv2.imshow("Image",img)
+
                     attrs = self.get_face_attributes(img, face,predictor)
                     output_faces[i] = attrs["face_image"]
                     output_right_eyes[i] = attrs["right_eye"]
@@ -275,9 +279,11 @@ class DriverActionDataset(object):
                     
 
                 else:
-                    print("No faces found for ",os.path.join(path,imgs_files[i]))
+                    continue
+                    # print("No faces found for ",os.path.join(path,imgs_files[i]))
             else:
                 print ("Unable to read image from ",os.path.join(path,imgs_files[i]))
+        print "loaded",path
         return output_faces,output_left_eyes,output_right_eyes,output_noses,output_mouths
         # return output_faces,output_left_eyes,output_right_eyes,output_noses,output_mouths,\
         #     output_left_eye_right_corners,output_left_eye_right_corners,output_right_eye_left_corners,\
@@ -289,6 +295,8 @@ class DriverActionDataset(object):
         else:
             return 0
     def load_dataset(self):
+        detector = dlib.get_frontal_face_detector()
+        predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
         sequences = os.listdir(self.dataset_dir)
 
         train_sequences,test_sequences = train_test_split(sequences,test_size=0.1)
@@ -304,8 +312,11 @@ class DriverActionDataset(object):
         self.talking_train = np.zeros((num_train_sequences,))
 
 
-        for i in range(train_sequences):
-            self.face_image_train_sequences[i],self.left_eye_image_train_sequences[i],self.right_eye_image_train_sequences[i],self.nose_image_train_sequences[i],self.mouth_image_train_sequences[i] = self.load_image_sequence(os.path.join(self.dataset_dir,train_sequences[i]))
+        for i in range(len(train_sequences)):
+            self.face_image_train_sequences[i],self.left_eye_image_train_sequences[i],\
+                self.right_eye_image_train_sequences[i],self.nose_image_train_sequences[i],\
+                self.mouth_image_train_sequences[i] = self.load_image_sequence(os.path.join(\
+                self.dataset_dir,train_sequences[i]),detector,predictor)
             self.talking_train[i] = self.get_is_talking(train_sequences[i])
 
 
@@ -317,9 +328,24 @@ class DriverActionDataset(object):
         self.talking_test = np.zeros((num_test_sequences,))
 
 
-        for i in range(test_sequences):
-            self.face_image_test_sequences[i],self.left_eye_image_test_sequences[i],self.right_eye_image_test_sequences[i],self.nose_image_test_sequences[i],self.mouth_image_test_sequences[i] = self.load_image_sequence(os.path.join(self.dataset_dir,test_sequences[i]))
+        for i in range(len(test_sequences)):
+            self.face_image_test_sequences[i],self.left_eye_image_test_sequences[i],self.right_eye_image_test_sequences[i],\
+                self.nose_image_test_sequences[i],self.mouth_image_test_sequences[i] = self.load_image_sequence(\
+                os.path.join(self.dataset_dir,test_sequences[i]),detector,predictor)
             self.talking_test[i] = self.get_is_talking(test_sequences[i])
         self.dataset_loaded = True
 
-        
+    def generator(self,batch_size):
+        while True:
+            indexes = np.arange(len(self.face_image_train_sequences))
+            np.random.shuffle(indexes)
+            for i in range(0,len(indexes),batch_size):
+                current_indexes = indexes[i:i+batch_size]
+                faces = self.face_image_train_sequences[current_indexes]
+                left_eyes = self.left_eye_image_train_sequences[current_indexes]
+                right_eyes = self.right_eye_image_train_sequences[current_indexes]
+                noses = self.nose_image_train_sequences[current_indexes]
+                mouths = self.mouth_image_train_sequences[current_indexes]
+                talking = self.talking_train[current_indexes].astype(np.uint8)
+                talking = np.eye(2)[talking]
+                yield [faces,left_eyes,right_eyes,noses,mouths],talking
