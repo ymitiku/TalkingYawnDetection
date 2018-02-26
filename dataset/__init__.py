@@ -357,7 +357,7 @@ class DriverActionDataset(object):
                 for j in range(len(current_sequences)):
                     faces,left_eyes,right_eyes,noses,mouths = self.load_image_sequence(os.path.join(\
                         self.dataset_dir,current_sequences[j]),self.detector,self.predictor)
-                    y[j] = self.get_is_talking(current_sequences[j])
+                    y[j] = self.get_is_talking(current_sequences[j]).astype(np.uint8)
 
                 y = np.eye(2)[y]
                 yield [faces,left_eyes,right_eyes,noses,mouths],y
