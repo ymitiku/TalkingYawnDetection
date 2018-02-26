@@ -228,8 +228,9 @@ class DriverActionDataset(object):
         return output
     
     
-    def load_image_sequence(self,path,detector,predictor):
-        print "loading",path
+    def load_image_sequence(self,path,detector,predictor,verbose=False):
+        if verbose:
+            print "loading",path
         imgs_files = os.listdir(path)
         imgs_files.sort()
         output_faces = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
@@ -281,10 +282,11 @@ class DriverActionDataset(object):
                     
 
                 else:
-                    continue
-                    # print("No faces found for ",os.path.join(path,imgs_files[i]))
+                    if verbose:
+                        print("No faces found for ",os.path.join(path,imgs_files[i]))
             else:
-                print ("Unable to read image from ",os.path.join(path,imgs_files[i]))
+                if verbose:
+                    print ("Unable to read image from ",os.path.join(path,imgs_files[i]))
         print "loaded",path
         return output_faces,output_left_eyes,output_right_eyes,output_noses,output_mouths
         # return output_faces,output_left_eyes,output_right_eyes,output_noses,output_mouths,\
@@ -301,10 +303,10 @@ class DriverActionDataset(object):
         predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
         sequences = os.listdir(self.dataset_dir)
 
-        self.train_sequences,test_sequences = train_test_split(sequences,test_size=0.1)
+        self.train_sequences,test_sequences = train_test_split(sequences,test_size=0.05)
 
         # num_train_sequences  = len(train_sequences)
-        # num_test_sequences  = len(test_sequences)
+        num_test_sequences  = len(test_sequences)
         
         # self.face_image_train_sequences = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
         # self.left_eye_image_train_sequences = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
@@ -339,7 +341,7 @@ class DriverActionDataset(object):
 
     def generator(self,batch_size):
         while True:
-            indexes = np.arange(len(self.face_image_train_sequences))
+            indexes = np.arange(len(self.train_sequences))
             np.random.shuffle(indexes)
             for i in range(0,len(indexes),batch_size):
                 current_indexes = indexes[i:i+batch_size]
