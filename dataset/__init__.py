@@ -360,4 +360,9 @@ class DriverActionDataset(object):
                     y[j] = self.get_is_talking(current_sequences[j])
                 y = y.astype(np.uint8)
                 y = np.eye(2)[y]
+                faces = faces.reshape(batch_size,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2])
+                left_eyes = left_eyes.reshape(batch_size,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2])
+                right_eyes = right_eyes.reshape(batch_size,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2])
+                noses = noses.reshape(batch_size,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2])
+                mouths = noses.reshape(batch_size,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2])
                 yield [faces,left_eyes,right_eyes,noses,mouths],y
