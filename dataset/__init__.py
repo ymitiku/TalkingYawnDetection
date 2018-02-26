@@ -117,7 +117,11 @@ class DriverActionDataset(object):
     def resize_to_output_shape(self,image):
         if image is None:
             return None
-        img = cv2.resize(image,(self.image_shape[0],self.image_shape[1]))
+        try:
+            img = cv2.resize(image,(self.image_shape[0],self.image_shape[1]))
+        except:
+            print "img.shape",image.shape
+            return None
         return img
     def get_nose_attributes(self,image,dlib_points):
         nose_top = int(max(dlib_points[27][1]-5,0))
