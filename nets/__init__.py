@@ -108,3 +108,11 @@ class Network(object):
 
         self.model.compile(loss=keras.losses.categorical_crossentropy,optimizer=keras.optimizers.Adam(1e-4),metrics=["accuracy"])
         self.model.fit_generator(self.dataset.generator(32),steps_per_epoch=300,epochs=10,verbose=1,validation_data=(X_test,y_test))
+        self.model.save_weights("models/model.h5")
+        model_json = self.model.to_json()
+        with open("models/model.json","w+") as json_file:
+            json_file.write(model_json)
+        score = self.model.evaluate(X_test,y_test)
+        with open("logs/log.txt") as log_file:
+            log_file.write("Score: "+str(score))
+            log_file.write("\n")
