@@ -14,6 +14,8 @@ class DriverActionDataset(object):
         self.image_shape = image_shape
         self.dataset_loaded = False
         self.max_sequence_length = max_sequence_length
+        self.detector = dlib.get_frontal_face_detector()
+        self.predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
     def get_attribute(self,folder_name):
         subj,gender_glasses,action_str,_ = folder_name.split("-")
         gender = -1
@@ -209,7 +211,7 @@ class DriverActionDataset(object):
                     ]
         face_image = cv2.resize(face_image,(self.image_shape[0],self.image_shape[1]))
 
-        dlib_points = self.get_dlib_points(image,face,predictor)
+        dlib_points = self.get_dlib_points(image,face,self.predictor)
         right_eye = self.get_right_eye_attributes(image,dlib_points)
         left_eye = self.get_left_eye_attributes(image,dlib_points)
         nose = self.get_nose_attributes(image,dlib_points)
@@ -267,7 +269,7 @@ class DriverActionDataset(object):
                     #                 ]
                     # [right_eye,left_eye,mouth,nose,left_eye_corners,right_eye_corners,nose_corners,mouth_corners]
 
-                    attrs = self.get_face_attributes(img, face,predictor)
+                    attrs = self.get_face_attributes(img, face,self.predictor)
                     output_faces[i] = attrs["face_image"]
                     output_right_eyes[i] = attrs["right_eye"]
                     output_left_eyes[i] = attrs["left_eye"]
@@ -304,8 +306,6 @@ class DriverActionDataset(object):
         else:
             return 0
     def load_dataset(self):
-        detector = dlib.get_frontal_face_detector()
-        predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
         sequences = os.listdir(self.dataset_dir)
 
         self.train_sequences,test_sequences = train_test_split(sequences,test_size=0.05)
@@ -340,7 +340,7 @@ class DriverActionDataset(object):
         for i in range(len(test_sequences)):
             self.face_image_test_sequences[i],self.left_eye_image_test_sequences[i],self.right_eye_image_test_sequences[i],\
                 self.nose_image_test_sequences[i],self.mouth_image_test_sequences[i] = self.load_image_sequence(\
-                os.path.join(self.dataset_dir,test_sequences[i]),detector,predictor)
+                os.path.join(self.dataset_dir,test_sequences[i]),self.detector,self.predictor)
             self.talking_test[i] = self.get_is_talking(test_sequences[i])
         self.dataset_loaded = True
 
@@ -356,7 +356,7 @@ class DriverActionDataset(object):
                 y = np.zeros((len(current_sequences),))
                 for j in range(len(current_sequences)):
                     faces,left_eyes,right_eyes,noses,mouths = self.load_image_sequence(os.path.join(\
-                        self.dataset_dir,current_sequences[j]),detector,predictor)
+                        self.dataset_dir,current_sequences[j]),self.detector,self.predictor)
                     y[j] = self.get_is_talking(current_sequences[j])
 
                 y = np.eye(2)[y]
