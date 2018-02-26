@@ -287,7 +287,8 @@ class DriverActionDataset(object):
             else:
                 if verbose:
                     print ("Unable to read image from ",os.path.join(path,imgs_files[i]))
-        print "loaded",path
+        if verbose:
+            print "loaded",path
         return output_faces,output_left_eyes,output_right_eyes,output_noses,output_mouths
         # return output_faces,output_left_eyes,output_right_eyes,output_noses,output_mouths,\
         #     output_left_eye_right_corners,output_left_eye_right_corners,output_right_eye_left_corners,\
@@ -304,7 +305,7 @@ class DriverActionDataset(object):
         sequences = os.listdir(self.dataset_dir)
 
         self.train_sequences,test_sequences = train_test_split(sequences,test_size=0.05)
-
+        self.train_sequences  =  np.array(self.train_sequences)
         # num_train_sequences  = len(train_sequences)
         num_test_sequences  = len(test_sequences)
         
