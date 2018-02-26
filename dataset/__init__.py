@@ -115,6 +115,8 @@ class DriverActionDataset(object):
         # return left_eye,left_eye_left_corner,left_eye_right_corner 
         return left_eye
     def resize_to_output_shape(self,image):
+        if image is None:
+            return None
         img = cv2.resize(image,(self.image_shape[0],self.image_shape[1]))
         return img
     def get_nose_attributes(self,image,dlib_points):
@@ -290,7 +292,7 @@ class DriverActionDataset(object):
         #     output_right_eye_right_corners,output_nose_left_corners,output_nose_right_corners,\
         #     output_mouth_left_corners,output_mouth_right_corners,output_mouth_top_corners,output_mouth_bottom_corners
     def get_is_talking(self,folder_name):
-        if folder_name.lower().count("talking"):
+        if folder_name.lower().count("talking")>0:
             return 1
         else:
             return 0
@@ -299,25 +301,25 @@ class DriverActionDataset(object):
         predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
         sequences = os.listdir(self.dataset_dir)
 
-        train_sequences,test_sequences = train_test_split(sequences,test_size=0.1)
+        self.train_sequences,test_sequences = train_test_split(sequences,test_size=0.1)
 
-        num_train_sequences  = len(train_sequences)
-        num_test_sequences  = len(test_sequences)
+        # num_train_sequences  = len(train_sequences)
+        # num_test_sequences  = len(test_sequences)
         
-        self.face_image_train_sequences = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        self.left_eye_image_train_sequences = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        self.right_eye_image_train_sequences = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        self.nose_image_train_sequences = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        self.mouth_image_train_sequences = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        self.talking_train = np.zeros((num_train_sequences,))
+        # self.face_image_train_sequences = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        # self.left_eye_image_train_sequences = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        # self.right_eye_image_train_sequences = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        # self.nose_image_train_sequences = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        # self.mouth_image_train_sequences = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        # self.talking_train = np.zeros((num_train_sequences,))
 
 
-        for i in range(len(train_sequences)):
-            self.face_image_train_sequences[i],self.left_eye_image_train_sequences[i],\
-                self.right_eye_image_train_sequences[i],self.nose_image_train_sequences[i],\
-                self.mouth_image_train_sequences[i] = self.load_image_sequence(os.path.join(\
-                self.dataset_dir,train_sequences[i]),detector,predictor)
-            self.talking_train[i] = self.get_is_talking(train_sequences[i])
+        # for i in range(len(train_sequences)):
+        #     self.face_image_train_sequences[i],self.left_eye_image_train_sequences[i],\
+        #         self.right_eye_image_train_sequences[i],self.nose_image_train_sequences[i],\
+        #         self.mouth_image_train_sequences[i] = self.load_image_sequence(os.path.join(\
+        #         self.dataset_dir,train_sequences[i]),detector,predictor)
+        #     self.talking_train[i] = self.get_is_talking(train_sequences[i])
 
 
         self.face_image_test_sequences = np.zeros((num_test_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
@@ -341,11 +343,14 @@ class DriverActionDataset(object):
             np.random.shuffle(indexes)
             for i in range(0,len(indexes),batch_size):
                 current_indexes = indexes[i:i+batch_size]
-                faces = self.face_image_train_sequences[current_indexes]
-                left_eyes = self.left_eye_image_train_sequences[current_indexes]
-                right_eyes = self.right_eye_image_train_sequences[current_indexes]
-                noses = self.nose_image_train_sequences[current_indexes]
-                mouths = self.mouth_image_train_sequences[current_indexes]
-                talking = self.talking_train[current_indexes].astype(np.uint8)
-                talking = np.eye(2)[talking]
-                yield [faces,left_eyes,right_eyes,noses,mouths],talking
+
+                current_sequences = self.train_sequences[current_indexes]
+               
+                y = np.zeros((len(current_sequences),))
+                for j in range(len(current_sequences)):
+                    faces,left_eyes,right_eyes,noses,mouths = self.load_image_sequence(os.path.join(\
+                        self.dataset_dir,current_sequences[j]),detector,predictor)
+                    y[j] = self.get_is_talking(current_sequences[j])
+
+                y = np.eye(2)[y]
+                yield [faces,left_eyes,right_eyes,noses,mouths],y

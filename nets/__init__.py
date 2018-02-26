@@ -113,6 +113,6 @@ class Network(object):
         with open("models/model.json","w+") as json_file:
             json_file.write(model_json)
         score = self.model.evaluate(X_test,y_test)
-        with open("logs/log.txt") as log_file:
+        with open("logs/log.txt","w+") as log_file:
             log_file.write("Score: "+str(score))
             log_file.write("\n")
