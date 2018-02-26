@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 
 
 class DriverActionDataset(object):
-    def __init__(self,dataset_dir,image_shape,max_sequence_length=100):
+    def __init__(self,dataset_dir,image_shape,max_sequence_length):
         self.dataset_dir = dataset_dir
         self.image_shape = image_shape
         self.dataset_loaded = False
