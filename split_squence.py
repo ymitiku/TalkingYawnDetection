@@ -5,6 +5,7 @@ import dlib
 import numpy as np
 import json
 
+
 def split_array(array,max_size):
     output = []
     for i in range(0,len(array),max_size):
@@ -37,7 +38,7 @@ def track_all_faces(sequence_path,img_files,face_index,detector,predictor):
     img = cv2.imread(os.path.join(sequence_path,img_files[face_index]))
     face = detector(img)[0]
     tracker = dlib.correlation_tracker()
-    win = dlib.image_window()
+    win = dlib.image_window()   
     tracker.start_track(img,face)
     bounding_boxes = {}
     for i in range(face_index,-1,-1):
