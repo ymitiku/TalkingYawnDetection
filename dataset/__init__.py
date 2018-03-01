@@ -118,13 +118,13 @@ class DriverActionDataset(object):
         # return left_eye,left_eye_left_corner,left_eye_right_corner 
         return left_eye
     def resize_to_output_shape(self,image):
-        if image is None:
-            return np.zeros((self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        try:
-            img = cv2.resize(image,(self.image_shape[0],self.image_shape[1]))
-        except:
-            print "img.shape",image.shape
-            return np.zeros((self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        # if image is None:
+        #     return np.zeros((self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        # try:
+        img = cv2.resize(image,(self.image_shape[0],self.image_shape[1]))
+        # except:
+        #     print "img.shape",image.shape
+        #     return np.zeros((self.image_shape[0],self.image_shape[1],self.image_shape[2]))
         return img
     def get_nose_attributes(self,image,dlib_points):
         nose_top = int(max(dlib_points[27][1]-5,0))
@@ -168,14 +168,26 @@ class DriverActionDataset(object):
                 raise Exception("No bounding box for sequence:"+sequence_path)
             else:
                 return bboxes
+    def draw_dlib_points(self,image,kps):
+        for i in range(len(kps)):
+            cv2.circle(image,)
     def get_mouth_attributes(self,image,dlib_points):
-        mouth_top = int(max(dlib_points[50][1]-5,0))
-        mouth_left = int(max(dlib_points[48][0]-5,0))
-        mouth_right  = int(min(dlib_points[54][0]+5,image.shape[1]))
-        mouth_bottom = int(min(dlib_points[57][1]+5,image.shape[0]))
+        mouth_dlib_points = dlib_points[48:68]
+        assert len(mouth_dlib_points)==20, "Mouth dlib points should be 20"
+        mouth_top_left = mouth_dlib_points.min(axis=0)
+        mouth_bottom_right = mouth_dlib_points.max(axis=0)
+
+        mouth_top = int(max(mouth_top_left[1]-5,0))
+        mouth_left = int(max(mouth_top_left[0]-5,0))
+        mouth_right  = int(min(mouth_bottom_right[0]+5,image.shape[1]))
+        mouth_bottom = int(min(mouth_bottom_right[1]+5,image.shape[0]))
 
         mouth = image[mouth_top:mouth_bottom,mouth_left:mouth_right]
-
+        if mouth.shape[0]==0:
+            print dlib_points
+            cv2.imshow("Image",image)
+            cv2.waitKey(0)
+            cv2.destroAllWindows()
         # mouth_left_corner_top   = int(max(dlib_points[52][1],0))
         # mouth_left_corner_left  = int(max(dlib_points[51][0],0))
         # mouth_left_corner_right = int(min(dlib_points[54][0]+5,image.shape[1]))
