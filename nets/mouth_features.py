@@ -14,14 +14,14 @@ class MouthFeatureOnlyNet(object):
         self.model.summary()
     def build(self):
         mouth_image_model = Sequential()
-        mouth_image_model.add(TimeDistributed(Conv2D(32,(3,3),padding='valid',activation="relu",strides=(1, 1)),\
+        mouth_image_model.add(TimeDistributed(Conv2D(32,(3,3),padding='same',activation="relu",strides=(1, 1)),\
                     name="mouth_image_layer1",input_shape=(self.max_sequence_length, self.input_shape[0], self.input_shape[1], self.input_shape[2])))
         
         mouth_image_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
-        mouth_image_model.add(TimeDistributed(Conv2D(64,kernel_size=(3,3),strides=(1, 1),padding='valid',\
+        mouth_image_model.add(TimeDistributed(Conv2D(64,kernel_size=(3,3),strides=(1, 1),padding='same',\
                 activation="relu",name="mouth_image_layer2")))
         mouth_image_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
-        mouth_image_model.add(TimeDistributed(Conv2D(128,kernel_size=(3,3),strides=(1, 1),padding='valid',\
+        mouth_image_model.add(TimeDistributed(Conv2D(128,kernel_size=(3,3),strides=(1, 1),padding='same',\
             activation="relu",name="mouth_image_layer3")))
         mouth_image_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
         mouth_image_model.add(TimeDistributed(Flatten()))
@@ -93,9 +93,9 @@ class MouthFeatureOnlyNet(object):
 
         self.model.compile(loss=keras.losses.binary_crossentropy,optimizer=keras.optimizers.Adam(1e-4),metrics=["accuracy"])
         self.model.fit_generator(self.dataset.generator(1),steps_per_epoch=1000,epochs=50,verbose=1,validation_data=(X_test,y_test))
-        self.model.save_weights("models/model-mouth2.h5")
+        self.model.save_weights("models/model-mouth-100.h5")
         model_json = self.model.to_json()
-        with open("models/model-mouth2.json","w+") as json_file:
+        with open("models/model-mouth-100.json","w+") as json_file:
             json_file.write(model_json)
         score = self.model.evaluate(X_test,y_test)
         with open("logs/log-mouth.txt","a+") as log_file:

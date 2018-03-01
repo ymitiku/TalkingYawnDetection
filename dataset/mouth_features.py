@@ -149,7 +149,7 @@ class MouthFeatureOnlyDataset(object):
             return 0
     def load_dataset(self):
         sequences = os.listdir(self.dataset_dir)
-
+        # sequences = sequences[:3000]
         train_sequences,test_sequences = train_test_split(sequences,test_size=0.1)
         num_train_sequences  = len(train_sequences)
         num_test_sequences  = len(test_sequences)
@@ -240,10 +240,11 @@ class MouthFeatureOnlyDataset(object):
             for i in range(0,len(indexes),batch_size):
                 current_indexes = indexes[i:i+batch_size]
                 m_images = self.mouth_image_train_sequence[current_indexes]
-                kpoints = self.key_points_train_sequence[current_indexes]
-                dpoints = self.distances_train_sequence[current_indexes]
-                angles = self.angles_train_sequence[current_indexes]
+                # kpoints = self.key_points_train_sequence[current_indexes]
+                # dpoints = self.distances_train_sequence[current_indexes]
+                # angles = self.angles_train_sequence[current_indexes]
 
                 y = self.Y_train[current_indexes]
                 y = np.eye(2)[y]
-                yield  [m_images,kpoints,dpoints,angles],y
+                # yield  [m_images,kpoints,dpoints,angles],y
+                yield  m_images,y
