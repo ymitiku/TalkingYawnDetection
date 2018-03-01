@@ -183,11 +183,11 @@ class DriverActionDataset(object):
         mouth_bottom = int(min(mouth_bottom_right[1]+5,image.shape[0]))
 
         mouth = image[mouth_top:mouth_bottom,mouth_left:mouth_right]
-        if mouth.shape[0]==0:
-            print dlib_points
-            cv2.imshow("Image",image)
-            cv2.waitKey(0)
-            cv2.destroAllWindows()
+        # if mouth.shape[0]==0:
+        #     print dlib_points
+        #     cv2.imshow("Image",image)
+        #     cv2.waitKey(0)
+        #     cv2.destroAllWindows()
         # mouth_left_corner_top   = int(max(dlib_points[52][1],0))
         # mouth_left_corner_left  = int(max(dlib_points[51][0],0))
         # mouth_left_corner_right = int(min(dlib_points[54][0]+5,image.shape[1]))
