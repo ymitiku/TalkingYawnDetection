@@ -131,13 +131,13 @@ class DriverActionDataset(object):
         # return left_eye,left_eye_left_corner,left_eye_right_corner 
         return left_eye
     def resize_to_output_shape(self,image):
-        # if image is None:
-        #     return np.zeros((self.image_shape[0],self.image_shape[1],self.image_shape[2]))
-        # try:
-        img = cv2.resize(image,(self.image_shape[0],self.image_shape[1]))
-        # except:
-        #     print "img.shape",image.shape
-        #     return np.zeros((self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        if image is None:
+            return np.zeros((self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        try:
+            img = cv2.resize(image,(self.image_shape[0],self.image_shape[1]))
+        except:
+            print "img.shape",image.shape
+            return np.zeros((self.image_shape[0],self.image_shape[1],self.image_shape[2]))
         return img
     def get_nose_attributes(self,image,dlib_points):
         nose_dlib_points = dlib_points[27:36]
@@ -202,14 +202,14 @@ class DriverActionDataset(object):
         mouth_bottom = int(min(mouth_bottom_right[1]+5,image.shape[0]))
 
         mouth = image[mouth_top:mouth_bottom,mouth_left:mouth_right]
-        if mouth.shape[0]==0:
-            print dlib_points
-            self.draw_dlib_points(image,dlib_points)
-            self.draw_dlib_points(image,mouth_dlib_points,color=(255,0,0))
+        # if mouth.shape[0]==0:
+        #     print dlib_points
+        #     self.draw_dlib_points(image,dlib_points)
+        #     self.draw_dlib_points(image,mouth_dlib_points,color=(255,0,0))
             
-            cv2.imshow("Image",image)
-            cv2.waitKey(0)
-            cv2.destroAllWindows()
+        #     cv2.imshow("Image",image)
+        #     cv2.waitKey(0)
+        #     cv2.destroyAllWindows()
         # mouth_left_corner_top   = int(max(dlib_points[52][1],0))
         # mouth_left_corner_left  = int(max(dlib_points[51][0],0))
         # mouth_left_corner_right = int(min(dlib_points[54][0]+5,image.shape[1]))
