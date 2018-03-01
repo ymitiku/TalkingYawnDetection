@@ -102,6 +102,7 @@ class Network(object):
         X_test= [self.dataset.face_image_test_sequences, self.dataset.left_eye_image_test_sequences, \
             self.dataset.right_eye_image_test_sequences, self.dataset.nose_image_test_sequences, \
             self.dataset.mouth_image_test_sequences]
+        X_test = X_test.astype(np.float32)/255
         y_test = self.dataset.talking_test.astype(np.uint8)
         print y_test[0]
         y_test = np.eye(2)[y_test]

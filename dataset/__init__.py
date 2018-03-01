@@ -9,8 +9,9 @@ from sklearn.model_selection import train_test_split
 
 
 class DriverActionDataset(object):
-    def __init__(self,dataset_dir,image_shape,max_sequence_length):
+    def __init__(self,dataset_dir,bounding_box_dir,image_shape,max_sequence_length):
         self.dataset_dir = dataset_dir
+        self.bounding_box_dir = bounding_box_dir
         self.image_shape = image_shape
         self.dataset_loaded = False
         self.max_sequence_length = max_sequence_length
@@ -157,6 +158,16 @@ class DriverActionDataset(object):
 
         # return nose,nose_left_corner,nose_right_corner
         return nose
+    def get_bounding_boxes(self,sequence_path):
+        _,sequence_name = os.path.split(sequence_path)
+        org_squence_name = "-".join(sequence_name.split("-")[:3])
+        bbox_file_path = os.path.join(self.bounding_box_dir,org_squence_name+".json")
+        with open(bbox_file_path,"r") as bbox_file:
+            bboxes = json.load(bbox_file)
+            if bboxes is None or len(bboxes)==0:
+                raise Exception("No bounding box for sequence:"+sequence_path)
+            else:
+                return bboxes
     def get_mouth_attributes(self,image,dlib_points):
         mouth_top = int(max(dlib_points[50][1]-5,0))
         mouth_left = int(max(dlib_points[48][0]-5,0))
@@ -256,40 +267,35 @@ class DriverActionDataset(object):
         # output_mouth_bottom_corners = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
         
     
-
+        bounding_boxes = self.get_bounding_boxes(path)
 
         for i in range(len(imgs_files)):
             img = cv2.imread(os.path.join(path,imgs_files[i]))
             if not (img is None):
-                faces = detector(img)
-                if len(faces)>0:
-                    face = faces[0]
-                    # face_image =img[ max(0,face.top()):min(img.shape[0],face.bottom()),
-                    #                  max(0,face.left()):min(img.shape[1],face.right())   
-                    #                 ]
-                    # [right_eye,left_eye,mouth,nose,left_eye_corners,right_eye_corners,nose_corners,mouth_corners]
+                face = bounding_boxes(imgs_files[i])
+                # face_image =img[ max(0,face.top()):min(img.shape[0],face.bottom()),
+                #                  max(0,face.left()):min(img.shape[1],face.right())   
+                #                 ]
+                # [right_eye,left_eye,mouth,nose,left_eye_corners,right_eye_corners,nose_corners,mouth_corners]
 
-                    attrs = self.get_face_attributes(img, face,self.predictor)
-                    output_faces[i] = attrs["face_image"]
-                    output_right_eyes[i] = attrs["right_eye"]
-                    output_left_eyes[i] = attrs["left_eye"]
-                    output_noses[i] = attrs["nose"]
-                    output_mouths[i] = attrs["mouth"]
-                    # output_left_eye_right_corners[i] = attrs["left_eye_right_corner"]
-                    # output_left_eye_left_corners[i] = attrs["left_eye_left_corner"]
-                    # output_right_eye_right_corners[i] = attrs["right_eye_right_corner"]
-                    # output_right_eye_left_corners[i] = attrs["right_eye_left_corner"]
-                    # output_nose_right_corners[i] = attrs["nose_right_corner"]
-                    # output_nose_left_corners[i] = attrs["nose_left_corner"]
-                    # output_mouth_right_corners[i] = attrs["mouth_right_corner"]
-                    # output_mouth_left_corners[i] = attrs["mouth_left_corner"]
-                    # output_mouth_top_corners[i] = attrs["mouth_top_corner"]
-                    # output_mouth_bottom_corners[i] = attrs["mouth_bottom_corner"]
+                attrs = self.get_face_attributes(img, face,self.predictor)
+                output_faces[i] = attrs["face_image"]
+                output_right_eyes[i] = attrs["right_eye"]
+                output_left_eyes[i] = attrs["left_eye"]
+                output_noses[i] = attrs["nose"]
+                output_mouths[i] = attrs["mouth"]
+                # output_left_eye_right_corners[i] = attrs["left_eye_right_corner"]
+                # output_left_eye_left_corners[i] = attrs["left_eye_left_corner"]
+                # output_right_eye_right_corners[i] = attrs["right_eye_right_corner"]
+                # output_right_eye_left_corners[i] = attrs["right_eye_left_corner"]
+                # output_nose_right_corners[i] = attrs["nose_right_corner"]
+                # output_nose_left_corners[i] = attrs["nose_left_corner"]
+                # output_mouth_right_corners[i] = attrs["mouth_right_corner"]
+                # output_mouth_left_corners[i] = attrs["mouth_left_corner"]
+                # output_mouth_top_corners[i] = attrs["mouth_top_corner"]
+                # output_mouth_bottom_corners[i] = attrs["mouth_bottom_corner"]
                     
 
-                else:
-                    if verbose:
-                        print("No faces found for ",os.path.join(path,imgs_files[i]))
             else:
                 if verbose:
                     print ("Unable to read image from ",os.path.join(path,imgs_files[i]))
@@ -360,6 +366,14 @@ class DriverActionDataset(object):
                     y[j] = self.get_is_talking(current_sequences[j])
                 y = y.astype(np.uint8)
                 y = np.eye(2)[y]
+                
+                faces = faces.astype(np.float32)/255
+                left_eyes = left_eyes.astype(np.float32)/255
+                right_eyes = right_eyes.astype(np.float32)/255
+                noses = noses.astype(np.float32)/255
+                mouths = mouths.astype(np.float32)/255
+
+
                 faces = faces.reshape(batch_size,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2])
                 left_eyes = left_eyes.reshape(batch_size,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2])
                 right_eyes = right_eyes.reshape(batch_size,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2])
