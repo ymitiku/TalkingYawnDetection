@@ -334,6 +334,7 @@ class DriverActionDataset(object):
         #         self.dataset_dir,train_sequences[i]),detector,predictor)
         #     self.talking_train[i] = self.get_is_talking(train_sequences[i])
 
+        print("loading test",len(test_sequences)," dataset")
 
         self.face_image_test_sequences = np.zeros((num_test_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
         self.left_eye_image_test_sequences = np.zeros((num_test_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
@@ -348,6 +349,7 @@ class DriverActionDataset(object):
                 self.nose_image_test_sequences[i],self.mouth_image_test_sequences[i] = self.load_image_sequence(\
                 os.path.join(self.dataset_dir,test_sequences[i]),self.detector,self.predictor)
             self.talking_test[i] = self.get_is_talking(test_sequences[i])
+        print ("loadded test",len(test_sequences),"dataset ")
         self.dataset_loaded = True
 
     def generator(self,batch_size):
