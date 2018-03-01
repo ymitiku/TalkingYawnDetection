@@ -272,7 +272,8 @@ class DriverActionDataset(object):
         for i in range(len(imgs_files)):
             img = cv2.imread(os.path.join(path,imgs_files[i]))
             if not (img is None):
-                face = bounding_boxes(imgs_files[i])
+                bbox = bounding_boxes[imgs_files[i]]
+                face = dlib.rectangle(int(bbox[0]),int(bbox[1]),int(bbox[2]),int(bbox[3]))
                 # face_image =img[ max(0,face.top()):min(img.shape[0],face.bottom()),
                 #                  max(0,face.left()):min(img.shape[1],face.right())   
                 #                 ]
