@@ -132,18 +132,21 @@ class MouthFeatureOnlyDataset(object):
             if not(img is None):
                 
                 face_image = img[
-                    max(0,int(bounding_box[1]-5)):min(img.shape[1],int(bounding_box[3])),
-                    max(0,int(bounding_box[0]-5)):min(img.shape[0],int(bounding_box[2]))
+                    max(0,int(bounding_box[1]-5)):min(img.shape[0],int(bounding_box[3])+5),
+                    max(0,int(bounding_box[0]-5)):min(img.shape[1],int(bounding_box[2])+5)
                 ]
                 try:
                     face_image = cv2.resize(face_image,(self.image_shape[0],self.image_shape[1]))
                 except:
-                    # print bounding_box
+                    print bounding_box
+                    face_image = np.zeros((self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+                    # top_left = (max(0,int(bounding_box[0])),max(0,int(bounding_box[1])))
+                    # bottom_right = (min(img.shape[1],int(bounding_box[2])),min(img.shape[0],int(bounding_box[3])))
+                    # cv2.rectangle(img,top_left,bottom_right,(255,0,0))
                     # cv2.imshow("Image",img)
                     # # cv2.imshow("Face image",face_image)
                     # cv2.waitKey(0)
                     # cv2.destroyAllWindows()
-                    face_image = np.zeros((self.image_shape[0],self.image_shape[1],self.image_shape[2]))
                 mouth_image,kps,dists,angles = self.get_mouth_features_from_image(img,bounding_box)
                 # self.draw_key_points(mouth_image,kps)
                 # cv2.imshow("Image",img)
