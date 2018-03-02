@@ -119,6 +119,7 @@ class MouthFeatureOnlyDataset(object):
     def get_mouth_features(self,sequence_path):
         bboxes = self.get_bounding_boxes(sequence_path)
         output_images = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
+        output_faces = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
         output_key_points = np.zeros((self.max_sequence_length,20,2))
         output_distances = np.zeros((self.max_sequence_length,20))
         output_angles = np.zeros((self.max_sequence_length,20))
@@ -129,19 +130,29 @@ class MouthFeatureOnlyDataset(object):
             img = cv2.imread(os.path.join(sequence_path,img_files[i]))
             bounding_box = bboxes[img_files[i]]
             if not(img is None):
+                
+                face_image = img[
+                    max(0,int(bounding_box[1]-5)):min(img.shape[1],int(bounding_box[3])),
+                    max(0,int(bounding_box[0]-5)):min(img.shape[0],int(bounding_box[2]))
+                ]
+                try:
+                    face_image = cv2.resize(face_image,(self.image_shape[0],self.image_shape[1]))
+                except:
+                    face_image = np.zeros((self.image_shape[0],self.image_shape[1],self.image_shape[2]))
                 mouth_image,kps,dists,angles = self.get_mouth_features_from_image(img,bounding_box)
                 # self.draw_key_points(mouth_image,kps)
                 # cv2.imshow("Image",img)
                 # cv2.imshow("Mouth Image",mouth_image)
                 # cv2.waitKey(0)
                 # cv2.destroyAllWindows()
+                output_faces[i] = face_image
                 output_images[i] = mouth_image
                 output_key_points[i] = kps
                 output_distances[i] = dists
                 output_angles[i] = angles.reshape((20,))
             else:
                 raise Exception("Unable to read image form "+os.path.join(sequence_path,img_files[i]))
-        return output_images,output_key_points,output_distances,output_angles
+        return output_faces, output_images,output_key_points,output_distances,output_angles
     def get_is_talking(self,folder_name):
         if folder_name.lower().count("talking")>0:
             return 1
@@ -154,6 +165,7 @@ class MouthFeatureOnlyDataset(object):
         num_train_sequences  = len(train_sequences)
         num_test_sequences  = len(test_sequences)
         
+        self.face_image_train_sequence = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
         self.mouth_image_train_sequence = np.zeros((num_train_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
         self.key_points_train_sequence = np.zeros((num_train_sequences,self.max_sequence_length,20,2))
         self.distances_train_sequence = np.zeros((num_train_sequences,self.max_sequence_length,20))
@@ -164,6 +176,7 @@ class MouthFeatureOnlyDataset(object):
         
         
         
+        self.face_image_test_sequence = np.zeros((num_test_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
         self.mouth_image_test_sequence = np.zeros((num_test_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
         self.key_points_test_sequence = np.zeros((num_test_sequences,self.max_sequence_length,20,2))
         self.distances_test_sequence = np.zeros((num_test_sequences,self.max_sequence_length,20))
@@ -172,8 +185,9 @@ class MouthFeatureOnlyDataset(object):
 
         print "Loading",num_train_sequences,"train sequences"
         for i in range(num_train_sequences):
-            images,points,distances, angles = self.get_mouth_features(os.path.join(self.dataset_dir, train_sequences[i]))
-            self.mouth_image_train_sequence[i] = images
+            faces,mouths,points,distances, angles = self.get_mouth_features(os.path.join(self.dataset_dir, train_sequences[i]))
+            self.face_image_train_sequence[i] = faces
+            self.mouth_image_train_sequence[i] = mouths
             self.key_points_train_sequence[i] = points
             self.distances_train_sequence[i] = distances
             self.angles_train_sequence[i] = angles
@@ -184,7 +198,8 @@ class MouthFeatureOnlyDataset(object):
 
         print "Loading test sequences"
         for i in range(num_test_sequences):
-            images,points,distances, angles = self.get_mouth_features(os.path.join(self.dataset_dir,test_sequences[i]))
+            faces,images,points,distances, angles = self.get_mouth_features(os.path.join(self.dataset_dir,test_sequences[i]))
+            self.face_image_test_sequence[i] = faces
             self.mouth_image_test_sequence[i] = images
             self.key_points_test_sequence[i] = points
             self.distances_test_sequence[i] = distances
@@ -197,6 +212,10 @@ class MouthFeatureOnlyDataset(object):
 
 
         print "Preprocessing dataset"
+        # Normalize images
+
+        self.face_image_train_sequence = self.face_image_train_sequence.astype(np.float32)/255.0
+        self.face_image_test_sequence = self.face_image_test_sequence.astype(np.float32)/255.0
         # Normalize images
 
         self.mouth_image_train_sequence = self.mouth_image_train_sequence.astype(np.float32)/255.0
@@ -239,6 +258,7 @@ class MouthFeatureOnlyDataset(object):
             np.random.shuffle(indexes)
             for i in range(0,len(indexes),batch_size):
                 current_indexes = indexes[i:i+batch_size]
+                f_images = self.face_image_train_sequence[current_indexes]
                 m_images = self.mouth_image_train_sequence[current_indexes]
                 # kpoints = self.key_points_train_sequence[current_indexes]
                 # dpoints = self.distances_train_sequence[current_indexes]
@@ -247,4 +267,4 @@ class MouthFeatureOnlyDataset(object):
                 y = self.Y_train[current_indexes]
                 y = np.eye(2)[y]
                 # yield  [m_images,kpoints,dpoints,angles],y
-                yield  m_images,y
+                yield  [m_images, f_images],y
