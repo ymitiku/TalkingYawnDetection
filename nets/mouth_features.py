@@ -47,7 +47,7 @@ class MouthFeatureOnlyNet(object):
         face_image_model.add(Bidirectional(LSTM(128,return_sequences=False)))
         face_image_model.add(Dense(1024,activation="relu"))
 
-        merged = Concatenate([mouth_image_model.output, face_image_model.output])
+        merged = keras.layers.concatenate([mouth_image_model.output, face_image_model.output])
         merged = Dense(1024,activation="relu")(merged)
 
         merged = Dense(2,activation="softmax")(merged)
@@ -64,7 +64,7 @@ class MouthFeatureOnlyNet(object):
         # X_test= [self.dataset.mouth_image_test_sequence, self.dataset.key_points_test_sequence, \
         #     self.dataset.distances_test_sequence, self.dataset.angles_test_sequence]
         X_test= [self.dataset.mouth_image_test_sequence,\
-                self.dataset.face_images_test_sequence]
+                self.dataset.face_image_test_sequence]
 
         y_test = self.dataset.Y_test.astype(np.uint8)
         y_test = np.eye(2)[y_test]

@@ -138,6 +138,11 @@ class MouthFeatureOnlyDataset(object):
                 try:
                     face_image = cv2.resize(face_image,(self.image_shape[0],self.image_shape[1]))
                 except:
+                    # print bounding_box
+                    # cv2.imshow("Image",img)
+                    # # cv2.imshow("Face image",face_image)
+                    # cv2.waitKey(0)
+                    # cv2.destroyAllWindows()
                     face_image = np.zeros((self.image_shape[0],self.image_shape[1],self.image_shape[2]))
                 mouth_image,kps,dists,angles = self.get_mouth_features_from_image(img,bounding_box)
                 # self.draw_key_points(mouth_image,kps)
