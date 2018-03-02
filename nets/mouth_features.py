@@ -28,7 +28,7 @@ class MouthFeatureOnlyNet(object):
         
         mouth_image_model.add(Bidirectional(LSTM(32,return_sequences=True)))
         mouth_image_model.add(Bidirectional(LSTM(128,return_sequences=False)))
-        mouth_image_model.add(Dense(1024,activation="relu"))
+        mouth_image_model.add(Dense(256,activation="relu"))
 
         face_image_model = Sequential()
         face_image_model.add(TimeDistributed(Conv2D(32,(3,3),padding='same',activation="relu",strides=(1, 1)),\
@@ -45,9 +45,10 @@ class MouthFeatureOnlyNet(object):
         
         face_image_model.add(Bidirectional(LSTM(32,return_sequences=True)))
         face_image_model.add(Bidirectional(LSTM(128,return_sequences=False)))
-        face_image_model.add(Dense(1024,activation="relu"))
+        face_image_model.add(Dense(256,activation="relu"))
 
         merged = keras.layers.concatenate([mouth_image_model.output, face_image_model.output])
+        merged = Dense(256,activation="relu")(merged)
         merged = Dense(1024,activation="relu")(merged)
 
         merged = Dense(2,activation="softmax")(merged)
