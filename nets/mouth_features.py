@@ -70,13 +70,15 @@ class MouthFeatureOnlyNet(object):
         y_test = self.dataset.Y_test.astype(np.uint8)
         y_test = np.eye(2)[y_test]
 
-        self.model.compile(loss=keras.losses.binary_crossentropy,optimizer=keras.optimizers.Adam(1e-4),metrics=["accuracy"])
-        self.model.fit_generator(self.dataset.generator(1),steps_per_epoch=1000,epochs=50,verbose=1,validation_data=(X_test,y_test))
-        self.model.save_weights("models/model-mouth-100.h5")
+        self.model.compile(loss=keras.losses.binary_crossentropy,optimizer=keras.optimizers.Adam(1e-5),metrics=["accuracy"])
+        self.model.fit_generator(self.dataset.generator(1),steps_per_epoch=5000,epochs=50,verbose=1,validation_data=(X_test,y_test))
+        
+        model_name = "model-mouth-100"
+        self.model.save_weights("models/"+model_name+".h5")
         model_json = self.model.to_json()
-        with open("models/model-mouth-100.json","w+") as json_file:
+        with open("models/"+model_name+".json","w+") as json_file:
             json_file.write(model_json)
         score = self.model.evaluate(X_test,y_test)
         with open("logs/log-mouth.txt","a+") as log_file:
-            log_file.write("Score: "+str(score))
+            log_file.write("Score of "+model_name+": "+str(score))
             log_file.write("\n")
