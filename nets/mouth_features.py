@@ -48,6 +48,8 @@ class MouthFeatureOnlyNet(object):
         face_image_model.add(Dense(256,activation="relu"))
 
         merged = keras.layers.concatenate([mouth_image_model.output, face_image_model.output])
+
+        
         merged = Dense(256,activation="relu")(merged)
         merged = Dense(1024,activation="relu")(merged)
 

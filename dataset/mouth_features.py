@@ -128,6 +128,8 @@ class MouthFeatureOnlyDataset(object):
 
         for i in range(len(img_files)):
             img = cv2.imread(os.path.join(sequence_path,img_files[i]))
+            if self.image_shape[2]==1:
+                img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
             bounding_box = bboxes[img_files[i]]
             if not(img is None):
                 
@@ -137,6 +139,7 @@ class MouthFeatureOnlyDataset(object):
                 ]
                 try:
                     face_image = cv2.resize(face_image,(self.image_shape[0],self.image_shape[1]))
+                    face_image = face_image.reshape(self.image_shape)
                 except:
                     print bounding_box
                     face_image = np.zeros((self.image_shape[0],self.image_shape[1],self.image_shape[2]))
@@ -148,6 +151,7 @@ class MouthFeatureOnlyDataset(object):
                     # cv2.waitKey(0)
                     # cv2.destroyAllWindows()
                 mouth_image,kps,dists,angles = self.get_mouth_features_from_image(img,bounding_box)
+                mouth_image = mouth_image.reshape(self.image_shape)
                 # self.draw_key_points(mouth_image,kps)
                 # cv2.imshow("Image",img)
                 # cv2.imshow("Mouth Image",mouth_image)
