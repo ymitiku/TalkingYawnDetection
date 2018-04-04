@@ -10,9 +10,9 @@ def get_cmd_args():
     return args
 def main():
     args  = get_cmd_args()
-    dataset = MouthFeatureOnlyDataset(args.dataset_path,args.faces_path,(48,48,1),30)
+    dataset = MouthFeatureOnlyDataset(args.dataset_path,args.faces_path,(48,48,1),args.sequence_length)
     dataset.load_dataset()
-    net = MouthFeatureOnlyNet(dataset,(48,48,1),30)
+    net = MouthFeatureOnlyNet(dataset,(48,48,1),args.sequence_length)
     net.train()
 if __name__ == "__main__":
     main()
