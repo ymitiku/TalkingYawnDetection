@@ -4,6 +4,7 @@ import cv2
 import dlib
 import numpy as np
 import json
+from sys import exit
 
 
 def split_array(array,max_size):
@@ -35,6 +36,7 @@ def rect_to_array(rect):
     output[0:4] = rect.left(),rect.top(),rect.right(),rect.bottom()
     return output
 def track_all_faces(sequence_path,img_files,face_index,detector,predictor):
+    
     img = cv2.imread(os.path.join(sequence_path,img_files[face_index]))
     face = detector(img)[0]
     tracker = dlib.correlation_tracker()
@@ -43,10 +45,17 @@ def track_all_faces(sequence_path,img_files,face_index,detector,predictor):
     bounding_boxes = {}
     for i in range(face_index,-1,-1):
         img = cv2.imread(os.path.join(sequence_path,img_files[i]))
-        tracker.update(img)
-        tracked_face = tracker.get_position()
+        faces = detector(img)
+        if len(faces)>0:
+            tracked_face = faces[0]
+            tracker.start_track(img,tracked_face)
+        else:
+            tracker.update(img)
+            tracked_face = tracker.get_position()
         bounding_boxes[img_files[i]] = rect_to_array(tracked_face)
         win.clear_overlay()
+        _,name = os.path.split(sequence_path)
+        win.set_title(name.split("-")[2])
         win.set_image(img)
         win.add_overlay(tracked_face)
 
@@ -54,9 +63,15 @@ def track_all_faces(sequence_path,img_files,face_index,detector,predictor):
     face = detector(img)[0]
     tracker.start_track(img,face)
     for i in range(face_index+1,len(img_files)):
+        
         img = cv2.imread(os.path.join(sequence_path,img_files[i]))
-        tracker.update(img)
-        tracked_face = tracker.get_position()
+        faces = detector(img)
+        if len(faces)>0:
+            tracked_face = faces[0]
+            tracker.start_track(img,tracked_face)
+        else:
+            tracker.update(img)
+            tracked_face = tracker.get_position()
         bounding_boxes[img_files[i]] = rect_to_array(tracked_face)
         win.clear_overlay()
         win.set_image(img)

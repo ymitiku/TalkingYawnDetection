@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 
 class MouthFeatureOnlyDataset(object):
 
-    def __init__(self,dataset_dir,bounding_box_dir,image_shape,max_sequence_length):
+    def __init__(self,dataset_dir, bounding_box_dir, image_shape,max_sequence_length):
         self.dataset_dir = dataset_dir
         self.bounding_box_dir = bounding_box_dir
         self.image_shape = image_shape
@@ -45,13 +45,13 @@ class MouthFeatureOnlyDataset(object):
         v2_norm = np.linalg.norm(v2,axis=1)
         
 
-        cosine_of_angle = (dot_prod/(v1_norm * v2_norm)).reshape(20,1)
+        cosine_of_angle = (dot_prod/(v1_norm * v2_norm)).reshape(-1,1)
 
         angles = np.arccos(np.clip(cosine_of_angle,-1,1))
         return angles
     def draw_key_points(self,image,key_points):
         for i in range(key_points.shape[0]):
-            image = cv2.circle(image,(int(key_points[i][0]),int(key_points[i][1])),1,(255,0,0))
+            image = cv2.circle(image, (int(key_points[i][0]), int(key_points[i][1])), 1,(255,0,0))
         return image
     def get_mouth_attributes_from_local_frame(self,image,key_points_20):
         
@@ -272,11 +272,12 @@ class MouthFeatureOnlyDataset(object):
                 current_indexes = indexes[i:i+batch_size]
                 f_images = self.face_image_train_sequence[current_indexes]
                 m_images = self.mouth_image_train_sequence[current_indexes]
-                # kpoints = self.key_points_train_sequence[current_indexes]
-                # dpoints = self.distances_train_sequence[current_indexes]
-                # angles = self.angles_train_sequence[current_indexes]
+                kpoints = self.key_points_train_sequence[current_indexes]
+                dpoints = self.distances_train_sequence[current_indexes]
+                angles = self.angles_train_sequence[current_indexes]
 
                 y = self.Y_train[current_indexes]
                 y = np.eye(2)[y]
                 # yield  [m_images,kpoints,dpoints,angles],y
-                yield  [m_images, f_images],y
+                # yield  [m_images, f_images],y
+                yield [m_images,f_images,kpoints,dpoints,angles],y
