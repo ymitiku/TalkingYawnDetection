@@ -9,8 +9,9 @@ from sklearn.model_selection import train_test_split
 
 
 class DriverActionDataset(object):
-    def __init__(self,dataset_dir,image_shape,max_sequence_length):
+    def __init__(self,dataset_dir,bounding_box_dir,image_shape,max_sequence_length):
         self.dataset_dir = dataset_dir
+        self.bounding_box_dir = bounding_box_dir
         self.image_shape = image_shape
         self.dataset_loaded = False
         self.max_sequence_length = max_sequence_length
@@ -60,10 +61,16 @@ class DriverActionDataset(object):
             dlib_points[i] = [part.x,part.y]
         return dlib_points
     def get_right_eye_attributes(self,image,dlib_points):
-        right_eye_top = int(max(dlib_points[19][1]-5,0))
-        right_eye_left = int(max(dlib_points[17][0]-5,0))
-        right_eye_right  = int(min(dlib_points[21][0]+5,image.shape[1]))
-        right_eye_bottom = int(min(dlib_points[41][1]+5,image.shape[0]))
+        
+        right_eye_dlib_points = np.concatenate((dlib_points[17:22],dlib_points[36:42]))
+        assert len(right_eye_dlib_points)==11, "right _eye dlib points should be 11"
+        right_eye_top_left = right_eye_dlib_points.min(axis=0)
+        right_eye_bottom_right = right_eye_dlib_points.max(axis=0)
+
+        right_eye_top = int(max(right_eye_top_left[1]-5,0))
+        right_eye_left = int(max(right_eye_top_left[0]-5,0))
+        right_eye_right  = int(min(right_eye_bottom_right[0]+5,image.shape[1]))
+        right_eye_bottom = int(min(right_eye_bottom_right[1]+5,image.shape[0]))
 
         right_eye = image[right_eye_top:right_eye_bottom,right_eye_left:right_eye_right]
 
@@ -89,10 +96,17 @@ class DriverActionDataset(object):
         return right_eye
 
     def get_left_eye_attributes(self,image,dlib_points):
-        left_eye_top = int(max(dlib_points[24][1]-5,0))
-        left_eye_left = int(max(dlib_points[22][0]-5,0))
-        left_eye_right  = int(min(dlib_points[26][0]+5,image.shape[1]))
-        left_eye_bottom = int(min(dlib_points[46][1]+5,image.shape[0]))
+
+        left_eye_dlib_points = np.concatenate((dlib_points[22:27],dlib_points[42:48]))
+        assert len(left_eye_dlib_points)==11, "left _eye dlib points should be 11"
+        left_eye_top_left = left_eye_dlib_points.min(axis=0)
+        left_eye_bottom_right = left_eye_dlib_points.max(axis=0)
+
+        left_eye_top = int(max(left_eye_top_left[1]-5,0))
+        left_eye_left = int(max(left_eye_top_left[0]-5,0))
+        left_eye_right  = int(min(left_eye_bottom_right[0]+5,image.shape[1]))
+        left_eye_bottom = int(min(left_eye_bottom_right[1]+5,image.shape[0]))
+
 
         left_eye = image[left_eye_top:left_eye_bottom,left_eye_left:left_eye_right]
 
@@ -118,18 +132,24 @@ class DriverActionDataset(object):
         return left_eye
     def resize_to_output_shape(self,image):
         if image is None:
-            return None
+            return np.zeros((self.image_shape[0],self.image_shape[1],self.image_shape[2]))
         try:
             img = cv2.resize(image,(self.image_shape[0],self.image_shape[1]))
         except:
             print "img.shape",image.shape
-            return None
+            return np.zeros((self.image_shape[0],self.image_shape[1],self.image_shape[2]))
         return img
     def get_nose_attributes(self,image,dlib_points):
-        nose_top = int(max(dlib_points[27][1]-5,0))
-        nose_left = int(max(dlib_points[31][0]-5,0))
-        nose_right  = int(min(dlib_points[35][0]+5,image.shape[1]))
-        nose_bottom = int(min(dlib_points[33][1]+5,image.shape[0]))
+        nose_dlib_points = dlib_points[27:36]
+        assert len(nose_dlib_points)==9, "nose dlib points should be 9"
+        nose_top_left = nose_dlib_points.min(axis=0)
+        nose_bottom_right = nose_dlib_points.max(axis=0)
+
+        nose_top = int(max(nose_top_left[1]-5,0))
+        nose_left = int(max(nose_top_left[0]-5,0))
+        nose_right  = int(min(nose_bottom_right[0]+5,image.shape[1]))
+        nose_bottom = int(min(nose_bottom_right[1]+5,image.shape[0]))
+
 
         nose = image[nose_top:nose_bottom,nose_left:nose_right]
 
@@ -157,14 +177,39 @@ class DriverActionDataset(object):
 
         # return nose,nose_left_corner,nose_right_corner
         return nose
+    def get_bounding_boxes(self,sequence_path):
+        _,sequence_name = os.path.split(sequence_path)
+        org_squence_name = "-".join(sequence_name.split("-")[:3])
+        bbox_file_path = os.path.join(self.bounding_box_dir,org_squence_name+".json")
+        with open(bbox_file_path,"r") as bbox_file:
+            bboxes = json.load(bbox_file)
+            if bboxes is None or len(bboxes)==0:
+                raise Exception("No bounding box for sequence:"+sequence_path)
+            else:
+                return bboxes
+    def draw_dlib_points(self,image,kps,color=(255,255,0)):
+        for i in range(len(kps)):
+            cv2.circle(image,(int(kps[i][0]),int(kps[i][1])),1,color)
     def get_mouth_attributes(self,image,dlib_points):
-        mouth_top = int(max(dlib_points[50][1]-5,0))
-        mouth_left = int(max(dlib_points[48][0]-5,0))
-        mouth_right  = int(min(dlib_points[54][0]+5,image.shape[1]))
-        mouth_bottom = int(min(dlib_points[57][1]+5,image.shape[0]))
+        mouth_dlib_points = dlib_points[48:68]
+        assert len(mouth_dlib_points)==20, "Mouth dlib points should be 20"
+        mouth_top_left = mouth_dlib_points.min(axis=0)
+        mouth_bottom_right = mouth_dlib_points.max(axis=0)
+
+        mouth_top = int(max(mouth_top_left[1]-5,0))
+        mouth_left = int(max(mouth_top_left[0]-5,0))
+        mouth_right  = int(min(mouth_bottom_right[0]+5,image.shape[1]))
+        mouth_bottom = int(min(mouth_bottom_right[1]+5,image.shape[0]))
 
         mouth = image[mouth_top:mouth_bottom,mouth_left:mouth_right]
-
+        # if mouth.shape[0]==0:
+        #     print dlib_points
+        #     self.draw_dlib_points(image,dlib_points)
+        #     self.draw_dlib_points(image,mouth_dlib_points,color=(255,0,0))
+            
+        #     cv2.imshow("Image",image)
+        #     cv2.waitKey(0)
+        #     cv2.destroyAllWindows()
         # mouth_left_corner_top   = int(max(dlib_points[52][1],0))
         # mouth_left_corner_left  = int(max(dlib_points[51][0],0))
         # mouth_left_corner_right = int(min(dlib_points[54][0]+5,image.shape[1]))
@@ -256,40 +301,36 @@ class DriverActionDataset(object):
         # output_mouth_bottom_corners = np.zeros((self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
         
     
-
+        bounding_boxes = self.get_bounding_boxes(path)
 
         for i in range(len(imgs_files)):
             img = cv2.imread(os.path.join(path,imgs_files[i]))
             if not (img is None):
-                faces = detector(img)
-                if len(faces)>0:
-                    face = faces[0]
-                    # face_image =img[ max(0,face.top()):min(img.shape[0],face.bottom()),
-                    #                  max(0,face.left()):min(img.shape[1],face.right())   
-                    #                 ]
-                    # [right_eye,left_eye,mouth,nose,left_eye_corners,right_eye_corners,nose_corners,mouth_corners]
+                bbox = bounding_boxes[imgs_files[i]]
+                face = dlib.rectangle(int(bbox[0]),int(bbox[1]),int(bbox[2]),int(bbox[3]))
+                # face_image =img[ max(0,face.top()):min(img.shape[0],face.bottom()),
+                #                  max(0,face.left()):min(img.shape[1],face.right())   
+                #                 ]
+                # [right_eye,left_eye,mouth,nose,left_eye_corners,right_eye_corners,nose_corners,mouth_corners]
 
-                    attrs = self.get_face_attributes(img, face,self.predictor)
-                    output_faces[i] = attrs["face_image"]
-                    output_right_eyes[i] = attrs["right_eye"]
-                    output_left_eyes[i] = attrs["left_eye"]
-                    output_noses[i] = attrs["nose"]
-                    output_mouths[i] = attrs["mouth"]
-                    # output_left_eye_right_corners[i] = attrs["left_eye_right_corner"]
-                    # output_left_eye_left_corners[i] = attrs["left_eye_left_corner"]
-                    # output_right_eye_right_corners[i] = attrs["right_eye_right_corner"]
-                    # output_right_eye_left_corners[i] = attrs["right_eye_left_corner"]
-                    # output_nose_right_corners[i] = attrs["nose_right_corner"]
-                    # output_nose_left_corners[i] = attrs["nose_left_corner"]
-                    # output_mouth_right_corners[i] = attrs["mouth_right_corner"]
-                    # output_mouth_left_corners[i] = attrs["mouth_left_corner"]
-                    # output_mouth_top_corners[i] = attrs["mouth_top_corner"]
-                    # output_mouth_bottom_corners[i] = attrs["mouth_bottom_corner"]
+                attrs = self.get_face_attributes(img, face,self.predictor)
+                output_faces[i] = attrs["face_image"]
+                output_right_eyes[i] = attrs["right_eye"]
+                output_left_eyes[i] = attrs["left_eye"]
+                output_noses[i] = attrs["nose"]
+                output_mouths[i] = attrs["mouth"]
+                # output_left_eye_right_corners[i] = attrs["left_eye_right_corner"]
+                # output_left_eye_left_corners[i] = attrs["left_eye_left_corner"]
+                # output_right_eye_right_corners[i] = attrs["right_eye_right_corner"]
+                # output_right_eye_left_corners[i] = attrs["right_eye_left_corner"]
+                # output_nose_right_corners[i] = attrs["nose_right_corner"]
+                # output_nose_left_corners[i] = attrs["nose_left_corner"]
+                # output_mouth_right_corners[i] = attrs["mouth_right_corner"]
+                # output_mouth_left_corners[i] = attrs["mouth_left_corner"]
+                # output_mouth_top_corners[i] = attrs["mouth_top_corner"]
+                # output_mouth_bottom_corners[i] = attrs["mouth_bottom_corner"]
                     
 
-                else:
-                    if verbose:
-                        print("No faces found for ",os.path.join(path,imgs_files[i]))
             else:
                 if verbose:
                     print ("Unable to read image from ",os.path.join(path,imgs_files[i]))
@@ -328,6 +369,7 @@ class DriverActionDataset(object):
         #         self.dataset_dir,train_sequences[i]),detector,predictor)
         #     self.talking_train[i] = self.get_is_talking(train_sequences[i])
 
+        print("loading test",len(test_sequences)," dataset")
 
         self.face_image_test_sequences = np.zeros((num_test_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
         self.left_eye_image_test_sequences = np.zeros((num_test_sequences,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2]))
@@ -342,6 +384,7 @@ class DriverActionDataset(object):
                 self.nose_image_test_sequences[i],self.mouth_image_test_sequences[i] = self.load_image_sequence(\
                 os.path.join(self.dataset_dir,test_sequences[i]),self.detector,self.predictor)
             self.talking_test[i] = self.get_is_talking(test_sequences[i])
+        print ("loadded test",len(test_sequences),"dataset ")
         self.dataset_loaded = True
 
     def generator(self,batch_size):
@@ -360,6 +403,14 @@ class DriverActionDataset(object):
                     y[j] = self.get_is_talking(current_sequences[j])
                 y = y.astype(np.uint8)
                 y = np.eye(2)[y]
+                
+                faces = faces.astype(np.float32)/255
+                left_eyes = left_eyes.astype(np.float32)/255
+                right_eyes = right_eyes.astype(np.float32)/255
+                noses = noses.astype(np.float32)/255
+                mouths = mouths.astype(np.float32)/255
+
+
                 faces = faces.reshape(batch_size,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2])
                 left_eyes = left_eyes.reshape(batch_size,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2])
                 right_eyes = right_eyes.reshape(batch_size,self.max_sequence_length,self.image_shape[0],self.image_shape[1],self.image_shape[2])

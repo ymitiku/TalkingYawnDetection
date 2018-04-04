@@ -11,6 +11,7 @@ def get_cmd_args():
 def main():
     args  = get_cmd_args()
     dataset = MouthFeatureOnlyDataset(args.dataset_path,args.faces_path,(48,48,1),args.sequence_length)
+
     dataset.load_dataset()
     net = MouthFeatureOnlyNet(dataset,(48,48,1),args.sequence_length)
     net.train()

@@ -15,66 +15,66 @@ class Network(object):
     def build(self):
         
         face_model = Sequential()
-        face_model.add(TimeDistributed(Conv2D(32,(3,3),padding='valid',activation="relu",strides=(1, 1)),\
+        face_model.add(TimeDistributed(Conv2D(32,(3,3),padding='same',activation="relu",strides=(1, 1)),\
                     name="face_layer1",input_shape=(self.max_sequence_length, self.input_shape[0], self.input_shape[1], self.input_shape[2])))
         
         face_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
-        face_model.add(TimeDistributed(Conv2D(64,kernel_size=(3,3),strides=(1, 1),padding='valid',\
+        face_model.add(TimeDistributed(Conv2D(64,kernel_size=(3,3),strides=(1, 1),padding='same',\
                 activation="relu",name="face_layer2")))
         face_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
-        face_model.add(TimeDistributed(Conv2D(128,kernel_size=(3,3),strides=(1, 1),padding='valid',\
+        face_model.add(TimeDistributed(Conv2D(128,kernel_size=(3,3),strides=(1, 1),padding='same',\
             activation="relu",name="face_layer3")))
         face_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
         face_model.add(TimeDistributed(Flatten()))
         
         nose_model = Sequential()
-        nose_model.add(TimeDistributed(Conv2D(32,(3,3),padding='valid',activation="relu",strides=(1, 1)),\
+        nose_model.add(TimeDistributed(Conv2D(32,(3,3),padding='same',activation="relu",strides=(1, 1)),\
                     name="nose_layer1",input_shape=(self.max_sequence_length, self.input_shape[0], self.input_shape[1], self.input_shape[2])))
         
         nose_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
-        nose_model.add(TimeDistributed(Conv2D(64,kernel_size=(3,3),strides=(1, 1),padding='valid',\
+        nose_model.add(TimeDistributed(Conv2D(64,kernel_size=(3,3),strides=(1, 1),padding='same',\
                 activation="relu",name="nose_layer2")))
         nose_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
-        nose_model.add(TimeDistributed(Conv2D(128,kernel_size=(3,3),strides=(1, 1),padding='valid',\
+        nose_model.add(TimeDistributed(Conv2D(128,kernel_size=(3,3),strides=(1, 1),padding='same',\
             activation="relu",name="nose_layer3")))
         nose_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
         nose_model.add(TimeDistributed(Flatten()))
         
         left_eye_model = Sequential()
-        left_eye_model.add(TimeDistributed(Conv2D(32,(3,3),padding='valid',activation="relu",strides=(1, 1)),\
+        left_eye_model.add(TimeDistributed(Conv2D(32,(3,3),padding='same',activation="relu",strides=(1, 1)),\
                     name="left_eye_layer1",input_shape=(self.max_sequence_length, self.input_shape[0], self.input_shape[1], self.input_shape[2])))
     
         left_eye_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
-        left_eye_model.add(TimeDistributed(Conv2D(64,kernel_size=(3,3),strides=(1, 1),padding='valid',\
+        left_eye_model.add(TimeDistributed(Conv2D(64,kernel_size=(3,3),strides=(1, 1),padding='same',\
                 activation="relu",name="left_eye_layer2")))
         left_eye_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
-        left_eye_model.add(TimeDistributed(Conv2D(128,kernel_size=(3,3),strides=(1, 1),padding='valid',\
+        left_eye_model.add(TimeDistributed(Conv2D(128,kernel_size=(3,3),strides=(1, 1),padding='same',\
             activation="relu",name="left_eye_layer3")))
         left_eye_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
         left_eye_model.add(TimeDistributed(Flatten()))
 
         right_eye_model = Sequential()
-        right_eye_model.add(TimeDistributed(Conv2D(32,(3,3),padding='valid',activation="relu",strides=(1, 1)),\
+        right_eye_model.add(TimeDistributed(Conv2D(32,(3,3),padding='same',activation="relu",strides=(1, 1)),\
                     name="right_eye_layer1",input_shape=(self.max_sequence_length, self.input_shape[0], self.input_shape[1], self.input_shape[2])))
         
         right_eye_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
-        right_eye_model.add(TimeDistributed(Conv2D(64,kernel_size=(3,3),strides=(1, 1),padding='valid',\
+        right_eye_model.add(TimeDistributed(Conv2D(64,kernel_size=(3,3),strides=(1, 1),padding='same',\
                 activation="relu",name="right_eye_layer2")))
         right_eye_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
-        right_eye_model.add(TimeDistributed(Conv2D(128,kernel_size=(3,3),strides=(1, 1),padding='valid',\
+        right_eye_model.add(TimeDistributed(Conv2D(128,kernel_size=(3,3),strides=(1, 1),padding='same',\
             activation="relu",name="right_eye_layer3")))
         right_eye_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
         right_eye_model.add(TimeDistributed(Flatten()))
 
         mouth_model = Sequential()
-        mouth_model.add(TimeDistributed(Conv2D(32,(3,3),padding='valid',activation="relu",strides=(1, 1)),\
+        mouth_model.add(TimeDistributed(Conv2D(32,(3,3),padding='same',activation="relu",strides=(1, 1)),\
                     name="mouth_layer1",input_shape=(self.max_sequence_length, self.input_shape[0], self.input_shape[1], self.input_shape[2])))
         
         mouth_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
-        mouth_model.add(TimeDistributed(Conv2D(64,kernel_size=(3,3),strides=(1, 1),padding='valid',\
+        mouth_model.add(TimeDistributed(Conv2D(64,kernel_size=(3,3),strides=(1, 1),padding='same',\
                 activation="relu",name="mouth_layer2")))
         mouth_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
-        mouth_model.add(TimeDistributed(Conv2D(128,kernel_size=(3,3),strides=(1, 1),padding='valid',\
+        mouth_model.add(TimeDistributed(Conv2D(128,kernel_size=(3,3),strides=(1, 1),padding='same',\
             activation="relu",name="mouth_layer3")))
         mouth_model.add(TimeDistributed(MaxPool2D(pool_size=(2, 2))))
         mouth_model.add(TimeDistributed(Flatten()))
@@ -99,15 +99,22 @@ class Network(object):
 
 
     def train(self):
-        X_test= [self.dataset.face_image_test_sequences, self.dataset.left_eye_image_test_sequences, \
-            self.dataset.right_eye_image_test_sequences, self.dataset.nose_image_test_sequences, \
-            self.dataset.mouth_image_test_sequences]
+        
+        faces = self.dataset.face_image_test_sequences.astype(np.float32)/255
+        left_eyes = self.dataset.left_eye_image_test_sequences.astype(np.float32)/255
+        right_eyes = self.dataset.right_eye_image_test_sequences.astype(np.float32)/255
+        noses = self.dataset.nose_image_test_sequences.astype(np.float32)/255
+        mouths = self.dataset.mouth_image_test_sequences.astype(np.float32)/255
+
+
+        X_test= [faces,left_eyes,right_eyes,noses,mouths]
+
         y_test = self.dataset.talking_test.astype(np.uint8)
         print y_test[0]
         y_test = np.eye(2)[y_test]
 
         self.model.compile(loss=keras.losses.categorical_crossentropy,optimizer=keras.optimizers.Adam(1e-4),metrics=["accuracy"])
-        self.model.fit_generator(self.dataset.generator(1),steps_per_epoch=300,epochs=10,verbose=1,validation_data=(X_test,y_test))
+        self.model.fit_generator(self.dataset.generator(1),steps_per_epoch=5000,epochs=10,verbose=1,validation_data=(X_test,y_test))
         self.model.save_weights("models/model.h5")
         model_json = self.model.to_json()
         with open("models/model.json","w+") as json_file:
